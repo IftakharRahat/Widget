@@ -9,7 +9,7 @@ export default defineConfig({
             formats: ['iife']
         },
         outDir: 'dist',
-        minify: 'terser',
+
         rollupOptions: {
             output: {
                 inlineDynamicImports: true
