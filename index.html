@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Demo - Live Chat System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .demo-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .highlight {
+            background: #f0f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .highlight h3 {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            color: #2563eb;
+            display: block;
+            white-space: pre-wrap;
+        }
+
+        .arrow {
+            font-size: 3rem;
+            margin-top: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(45deg);
+            }
+
+            50% {
+                transform: translateY(10px) rotate(45deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="demo-card">
+        <h1>💬 Live Chat Real User Demo</h1>
+        <p>This demo simulates a <strong>Logged In User</strong> on your client's website.</p>
+
+        <div class="highlight">
+            <h3>Current Configuration (Simulated)</h3>
+            <code>
+window.SupportWidget.init({
+  apiUrl: 'http://localhost:3000',
+  user: {
+    id: 'u_fixed_demo_user',
+    name: 'Rahat (VIP)',
+    email: 'rahat@example.com',
+    metadata: { plan: 'premium' }
+  }
+});
+            </code>
+        </div>
+
+        <p>
+            The backend will now identify this user by their external ID.
+            If they chat again, their history will be preserved.
+        </p>
+
+        <div class="arrow">↘</div>
+    </div>
+
+    <!-- Widget Integration -->
+    <script>
+        window.SupportWidget = window.SupportWidget || {};
+
+        // Simulating a logged-in user from the client's website
+        window.SupportWidget.config = {
+            apiUrl: 'http://localhost:3000',
+            user: {
+                id: 'u_fixed_demo_user', // Fixed ID so history persists in demo
+                external_id: 'ext_rahat_123', // Fixed ID to test persistence if needed, or unique
+                name: 'Rahat (VIP)',
+                email: 'rahat@example.com',
+                metadata: {
+                    plan: 'premium',
+                    joined: '2024-01-01'
+                }
+            }
+        };
+        log('Config set with User: ' + window.SupportWidget.config.user.name);
+    </script>
+    <script type="module" src="/src/widget.ts"></script>
+</body>
+
+</html>
