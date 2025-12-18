@@ -47,6 +47,7 @@ class SupportWidget {
     private messages: Message[] = [];
     private currentView: 'button' | 'categories' | 'auto-answer' | 'chat' = 'button';
     private selectedCategory: Category | null = null;
+    private isLoadingCategories: boolean = false;
 
     constructor() {
         this.config = {
@@ -91,18 +92,48 @@ class SupportWidget {
     }
 
     private async fetchCategories() {
+        this.isLoadingCategories = true;
+        
+        // If view is already categories (rare but possible), show loading
+        if (this.currentView === 'categories') {
+            this.renderCategories();
+        }
+
         try {
             const response = await fetch(`${this.config.apiUrl}/api/v1/categories`);
             const data = await response.json();
             this.categories = data.categories || [];
         } catch (error) {
             console.error('Failed to fetch categories:', error);
+        } finally {
+            this.isLoadingCategories = false;
+            // If user is looking at categories list, update it now that data arrived
+            if (this.currentView === 'categories') {
+                this.renderCategories();
+            }
         }
     }
 
     private renderCategories() {
         if (!this.container) return;
         this.currentView = 'categories';
+
+        const content = this.isLoadingCategories
+            ? `<div class="sw-body sw-loading">
+                 <div class="sw-spinner"></div>
+               </div>`
+            : `<div class="sw-body">
+                 <div class="sw-categories">
+                   ${this.categories.length === 0 
+                     ? '<div class="sw-empty-state">No topics available</div>' 
+                     : this.categories.map(cat => `
+                     <button class="sw-category-btn" data-id="${cat.id}">
+                       <span class="sw-category-title">${cat.title}</span>
+                       ${cat.description ? `<span class="sw-category-desc">${cat.description}</span>` : ''}
+                     </button>
+                   `).join('')}
+                 </div>
+               </div>`;
 
         this.container.innerHTML = `
       <div class="sw-panel">
@@ -113,16 +144,7 @@ class SupportWidget {
           </div>
           <button class="sw-close" aria-label="Close">&times;</button>
         </div>
-        <div class="sw-body">
-          <div class="sw-categories">
-            ${this.categories.map(cat => `
-              <button class="sw-category-btn" data-id="${cat.id}">
-                <span class="sw-category-title">${cat.title}</span>
-                ${cat.description ? `<span class="sw-category-desc">${cat.description}</span>` : ''}
-              </button>
-            `).join('')}
-          </div>
-        </div>
+        ${content}
       </div>
     `;
 
@@ -130,20 +152,22 @@ class SupportWidget {
             this.renderButton();
         });
 
-        this.container.querySelectorAll('.sw-category-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = (e.currentTarget as HTMLElement).dataset.id;
-                const category = this.categories.find(c => c.id === id);
-                if (category) {
-                    this.selectedCategory = category;
-                    if (category.auto_answer) {
-                        this.renderAutoAnswer(category);
-                    } else {
-                        this.startChat(category.id);
+        if (!this.isLoadingCategories) {
+            this.container.querySelectorAll('.sw-category-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = (e.currentTarget as HTMLElement).dataset.id;
+                    const category = this.categories.find(c => c.id === id);
+                    if (category) {
+                        this.selectedCategory = category;
+                        if (category.auto_answer) {
+                            this.renderAutoAnswer(category);
+                        } else {
+                            this.startChat(category.id);
+                        }
                     }
-                }
+                });
             });
-        });
+        }
     }
 
     private renderAutoAnswer(category: Category) {

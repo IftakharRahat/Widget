@@ -189,6 +189,13 @@ export function injectStyles() {
     }
     
     /* Categories */
+    .sw-empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--sw-text-secondary);
+      font-size: 15px;
+    }
+    
     .sw-categories {
       display: flex;
       flex-direction: column;
