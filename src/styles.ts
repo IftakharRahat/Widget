@@ -354,7 +354,13 @@ export function injectStyles() {
       outline: none;
       transition: all 0.2s;
       background: var(--sw-bg-secondary);
-      font-family: inherit;
+      font-family: var(--sw-font);
+      color: var(--sw-text);
+    }
+
+    .sw-input-area input[type="text"]::placeholder {
+      color: var(--sw-text-secondary);
+      opacity: 0.7;
     }
     
     .sw-input-area input[type="text"]:focus {
