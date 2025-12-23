@@ -58,9 +58,34 @@ class SupportWidget {
 
     init(config: WidgetConfig) {
         this.config = { ...this.config, ...config };
+
+        // Ensure guests have a unique ID (critical for privacy)
+        if (!this.config.user?.id && !this.config.user?.external_id) {
+            const guestId = this.getOrCreateGuestId();
+            this.config.user = {
+                ...this.config.user,
+                id: guestId,
+                name: this.config.user?.name || 'Guest'
+            };
+            console.log('Guest mode: assigned unique ID', guestId);
+        }
+
         injectStyles();
         this.createWidget();
         this.fetchCategories();
+    }
+
+    private getOrCreateGuestId(): string {
+        const storageKey = 'sw_guest_id';
+        let guestId = localStorage.getItem(storageKey);
+
+        if (!guestId) {
+            // Generate a unique ID for this guest
+            guestId = 'guest_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 9);
+            localStorage.setItem(storageKey, guestId);
+        }
+
+        return guestId;
     }
 
     private createWidget() {
@@ -93,7 +118,7 @@ class SupportWidget {
 
     private async fetchCategories() {
         this.isLoadingCategories = true;
-        
+
         // If view is already categories (rare but possible), show loading
         if (this.currentView === 'categories') {
             this.renderCategories();
@@ -124,9 +149,9 @@ class SupportWidget {
                </div>`
             : `<div class="sw-body">
                  <div class="sw-categories">
-                   ${this.categories.length === 0 
-                     ? '<div class="sw-empty-state">No topics available</div>' 
-                     : this.categories.map(cat => `
+                   ${this.categories.length === 0
+                ? '<div class="sw-empty-state">No topics available</div>'
+                : this.categories.map(cat => `
                      <button class="sw-category-btn" data-id="${cat.id}">
                        <span class="sw-category-title">${cat.title}</span>
                        ${cat.description ? `<span class="sw-category-desc">${cat.description}</span>` : ''}
