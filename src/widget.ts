@@ -59,30 +59,11 @@ class SupportWidget {
     init(config: WidgetConfig) {
         this.config = { ...this.config, ...config };
 
-        // Helper to check for bad/static IDs
-        const isPlaceholderId = (id?: string) => {
-            if (!id) return false;
-            // Expanded blacklist based on common developer mistakes
-            const badIds = [
-                'guest', 'guest_user', 'guest_user_id', 'demo', 'test', 'user', 'user_id', 'undefined', 'null', 'default',
-                'account', 'client', 'customer', 'visitor', 'visitor_id', 'admin', 'support', 'temp'
-            ];
-            const normalizedId = id.toLowerCase().trim();
-            const isBad = badIds.includes(normalizedId) ||
-                normalizedId.includes('placeholder') ||
-                normalizedId.includes('demo_user') ||
-                normalizedId === 'user_id_from_db';
-
-            return isBad ||
-                (id.length < 3) || // Reject very short IDs like '1', 'id'
-                (id.toLowerCase() === this.config.user?.name?.toLowerCase()); // Reject if ID equals Name (lazy pattern)
-        };
-
         // Ensure guests have a unique ID (critical for privacy)
         // We also check if the provided ID is a known "bad" static ID that causes shared history
         const providedId = this.config.user?.id || this.config.user?.external_id;
 
-        if (!providedId || isPlaceholderId(providedId)) {
+        if (!providedId || this.isPlaceholderId(providedId)) {
             if (providedId) {
                 console.warn(`[SupportWidget] Security Warning: '${providedId}' is a static ID and causes shared chat history. Switching to unique guest ID.`);
             }
@@ -282,7 +263,9 @@ class SupportWidget {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: this.config.username || this.config.user?.name || 'Guest',
+                    username: this.config.username || this.config.user?.name ||
+                        (!this.isPlaceholderId(this.config.user?.id) ? this.config.user?.id : null) ||
+                        'Guest',
                     site_origin: window.location.origin,
                     category_id: categoryId,
                     device_hash: this.getDeviceHash(),
@@ -748,6 +731,24 @@ class SupportWidget {
             created_at: new Date().toISOString()
         });
         this.updateMessages();
+    }
+
+    private isPlaceholderId(id?: string): boolean {
+        if (!id) return false;
+        // Expanded blacklist based on common developer mistakes
+        const badIds = [
+            'guest', 'guest_user', 'guest_user_id', 'demo', 'test', 'user', 'user_id', 'undefined', 'null', 'default',
+            'account', 'client', 'customer', 'visitor', 'visitor_id', 'admin', 'support', 'temp'
+        ];
+        const normalizedId = id.toLowerCase().trim();
+        const isBad = badIds.includes(normalizedId) ||
+            normalizedId.includes('placeholder') ||
+            normalizedId.includes('demo_user') ||
+            normalizedId === 'user_id_from_db';
+
+        return isBad ||
+            (id.length < 3) || // Reject very short IDs like '1', 'id'
+            (id.toLowerCase() === this.config.user?.name?.toLowerCase()); // Reject if ID equals Name (lazy pattern)
     }
 
     private getDeviceHash(): string {
