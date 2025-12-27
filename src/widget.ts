@@ -64,10 +64,16 @@ class SupportWidget {
             if (!id) return false;
             // Expanded blacklist based on common developer mistakes
             const badIds = [
-                'guest', 'guest_user', 'demo', 'test', 'user', 'undefined', 'null', 'default',
-                'account', 'client', 'customer', 'visitor', 'admin', 'support', 'temp'
+                'guest', 'guest_user', 'guest_user_id', 'demo', 'test', 'user', 'user_id', 'undefined', 'null', 'default',
+                'account', 'client', 'customer', 'visitor', 'visitor_id', 'admin', 'support', 'temp'
             ];
-            return badIds.includes(id.toLowerCase()) ||
+            const normalizedId = id.toLowerCase().trim();
+            const isBad = badIds.includes(normalizedId) ||
+                normalizedId.includes('placeholder') ||
+                normalizedId.includes('demo_user') ||
+                normalizedId === 'user_id_from_db';
+
+            return isBad ||
                 (id.length < 3) || // Reject very short IDs like '1', 'id'
                 (id.toLowerCase() === this.config.user?.name?.toLowerCase()); // Reject if ID equals Name (lazy pattern)
         };
