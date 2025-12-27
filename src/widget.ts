@@ -747,12 +747,21 @@ class SupportWidget {
     private getDeviceHash(): string {
         const nav = navigator;
         const screen = window.screen;
+
+        // Generate or retrieve a persistent random ID for this browser instance
+        let deviceId = localStorage.getItem('sw_device_id');
+        if (!deviceId) {
+            deviceId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+            localStorage.setItem('sw_device_id', deviceId);
+        }
+
         const str = [
             nav.userAgent,
             nav.language,
             screen.width,
             screen.height,
-            new Date().getTimezoneOffset()
+            new Date().getTimezoneOffset(),
+            deviceId // This ensures uniqueness per browser profile/storage
         ].join('|');
 
         let hash = 0;
