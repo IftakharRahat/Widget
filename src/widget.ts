@@ -59,13 +59,28 @@ class SupportWidget {
     init(config: WidgetConfig) {
         this.config = { ...this.config, ...config };
 
+        // Helper to check for bad/static IDs
+        const isPlaceholderId = (id?: string) => {
+            if (!id) return false;
+            const badIds = ['guest', 'guest_user', 'demo', 'test', 'user', 'undefined', 'null', 'default'];
+            return badIds.includes(id.toLowerCase());
+        };
+
         // Ensure guests have a unique ID (critical for privacy)
-        if (!this.config.user?.id && !this.config.user?.external_id) {
+        // We also check if the provided ID is a known "bad" static ID that causes shared history
+        const providedId = this.config.user?.id || this.config.user?.external_id;
+
+        if (!providedId || isPlaceholderId(providedId)) {
+            if (providedId) {
+                console.warn(`[SupportWidget] Security Warning: '${providedId}' is a static ID and causes shared chat history. Switching to unique guest ID.`);
+            }
+
             const guestId = this.getOrCreateGuestId();
             this.config.user = {
                 ...this.config.user,
                 id: guestId,
-                name: this.config.user?.name || 'Guest'
+                // Only override name if it's likely a placeholder too
+                name: (this.config.user?.name === 'Guest' || !this.config.user?.name) ? 'Guest' : this.config.user.name
             };
             console.log('Guest mode: assigned unique ID', guestId);
         }
