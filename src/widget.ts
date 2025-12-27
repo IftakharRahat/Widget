@@ -305,10 +305,14 @@ class SupportWidget {
     }
 
     private async loadHistory() {
-        if (!this.threadId) return;
+        if (!this.threadId || !this.wsToken) return;
 
         try {
-            const response = await fetch(`${this.config.apiUrl}/api/v1/chat/${this.threadId}/messages`);
+            const response = await fetch(`${this.config.apiUrl}/api/v1/chat/${this.threadId}/messages`, {
+                headers: {
+                    'Authorization': `Bearer ${this.wsToken}`
+                }
+            });
             if (response.ok) {
                 const data = await response.json();
                 if (data.messages && Array.isArray(data.messages)) {
