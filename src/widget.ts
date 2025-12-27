@@ -62,8 +62,14 @@ class SupportWidget {
         // Helper to check for bad/static IDs
         const isPlaceholderId = (id?: string) => {
             if (!id) return false;
-            const badIds = ['guest', 'guest_user', 'demo', 'test', 'user', 'undefined', 'null', 'default'];
-            return badIds.includes(id.toLowerCase());
+            // Expanded blacklist based on common developer mistakes
+            const badIds = [
+                'guest', 'guest_user', 'demo', 'test', 'user', 'undefined', 'null', 'default',
+                'account', 'client', 'customer', 'visitor', 'admin', 'support', 'temp'
+            ];
+            return badIds.includes(id.toLowerCase()) ||
+                (id.length < 3) || // Reject very short IDs like '1', 'id'
+                (id.toLowerCase() === this.config.user?.name?.toLowerCase()); // Reject if ID equals Name (lazy pattern)
         };
 
         // Ensure guests have a unique ID (critical for privacy)
